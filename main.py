@@ -1,6 +1,7 @@
 import cv2
 import slope
 import perclos
+import yawn
 import time
 import vlc
 import os
@@ -12,7 +13,8 @@ def main():
     short_start_slope = time.time()
     music_flag_eye = 0
     music_flag_slope = 0
-    p = vlc.MediaPlayer("file://"+os.path.dirname(os.path.abspath(__file__))+"/alarm.mp3")
+    isYawning = 0
+    p = vlc.MediaPlayer("alarm.mp3")
     detectSlope = slope.DetectSlope()
     pCLOS = perclos.perclos()
     vCap = cv2.VideoCapture(0)
@@ -28,7 +30,15 @@ def main():
                 cv2.putText(frame, "Duz", (frame.shape[1]-350, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,0,0), 2)
             else:
                 cv2.putText(frame, "Egik", (frame.shape[1]-350, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,0,0), 2)
-            
+
+            # Yawn
+            yawn.yawnDetect(frame)
+            if yawn.mar > 0.38:
+                isYawning = 1
+            else:
+                isYawning = 0
+
+
             #Calculate Perclos
             pCLOS.load_img(frame)
             ear = pCLOS.calc_ear()
@@ -45,11 +55,12 @@ def main():
             else:
                 cv2.putText(frame, "Yorgun Degil", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
-            if ear >= 0.23:
+            if ear >= 0.23 or isYawning == 1:
                 short_flag = 0
                 music_flag_eye = 0
                 if music_flag_eye == 0 and music_flag_slope == 0:
                     p.stop()
+                short_flag_eye = 0
             else:
                 if short_flag_eye == 0:
                     short_start_eye = time.time()
@@ -60,27 +71,36 @@ def main():
                         if music_flag_eye == 0 and music_flag_slope == 0:
                             p.play()
                             music_flag_eye = 1
+
+            if music_flag_eye == 1:
+                cv2.putText(frame, "UYARI!".format(ear), (frame.shape[1] - 150, 110),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
             if angle <= 15:
                 short_flag_slope = 0
                 music_flag_slope = 0
                 if music_flag_eye == 0 and music_flag_slope == 0:
                     p.stop()
+                short_flag_slope = 0
             else:
                 if short_flag_slope == 0:
                     short_start_slope = time.time()
                     short_flag_slope = 1
                 else:
                     end = time.time()
-                    if end - short_start_slope >= 3:
+                    if end - short_start_slope >= 4:
                         if music_flag_slope == 0 and music_flag_eye == 0:
                             p.play()
                             music_flag_slope=1
+            if music_flag_slope == 1:
+                cv2.putText(frame, "UYARI!".format(ear), (frame.shape[1] - 150, 110),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
             if type(pCLOS.leftEye) is not int or type(pCLOS.rightEye) is not int:
                 leftEyeHull = cv2.convexHull(pCLOS.leftEye)
                 rightEyeHull = cv2.convexHull(pCLOS.rightEye)
                 cv2.drawContours(frame, [leftEyeHull], -1, (0, 255, 0), 1)
                 cv2.drawContours(frame, [rightEyeHull], -1, (0, 255, 0), 1)
+
 
         #Show Frame
         cv2.imshow("Frame", frame)
@@ -94,3 +114,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+    #deneme
