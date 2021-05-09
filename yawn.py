@@ -19,9 +19,6 @@ mar = 0
 
 
 def mouth_aspect_ratio(mouth):
-    # 2 değer arasında ki öklid teoreminden yaklaştık aynı eye aspect ratioda ki gibi
-    # mouth[0] dan başlıyor 49. nokta - mouth[2] = 51. nokta yanlanarında onu açıklamaya çalıştım 49 - 59 arasında ağız noktaları var hocam
-    # göz deki ile aynı hesabı yaptık direk
     A = dist.euclidean(mouth[2], mouth[10])  # 51, 59
     B = dist.euclidean(mouth[4], mouth[8])  # 53, 57
     C = dist.euclidean(mouth[0], mouth[6])  # 49, 55
